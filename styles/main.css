@@ -1,0 +1,14 @@
+
+
+body {
+    background: #f0f0f0;
+}
+
+.scrollhost {
+    scrollbar-width: none;
+   -ms-overflow-style: none;
+ }
+ 
+ .scrollhost::-webkit-scrollbar {
+   display: none;
+ }
