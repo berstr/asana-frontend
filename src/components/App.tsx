@@ -37,7 +37,7 @@ const Item = styled(Paper)(({ theme }) => ({
 function App() {
 
     const [projects, setProjects] = React.useState<ProjectType[]>([]);
-    const [projectsSelected, setProjectsSelected] = React.useState<string[]>(['1200799299933135']);  // Test: 1201796062260359, Volkswagen: 1200799299933135
+    const [projectsSelected, setProjectsSelected] = React.useState<string[]>(['1200799299933135']);  // Test: 1201796062260359
     const [task_note, setTaskNote] = React.useState<TaskNoteI|undefined>(undefined);
     const [completedTasks,setCompletedTasks] = React.useState<boolean>(false)
     const [searchFilter,setSearchFilter] = React.useState<string>('')
