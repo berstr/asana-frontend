@@ -40,14 +40,14 @@ export default function TasksSearch({filterProps, onFilterChange}:TasksSearchPro
 
 interface TasksDetailSearchProps {
   onFilterChange: any;
-  project_gids: string[];
+  searchText: string;
 }
 
-export function TasksDetailSearch({project_gids, onFilterChange}:TasksDetailSearchProps): JSX.Element {
-  const [text,setFilter] = React.useState('');
+export function TasksDetailSearch({searchText, onFilterChange}:TasksDetailSearchProps): JSX.Element {
+  const [text,setFilter] = React.useState(searchText);
 
   //const onClickSearch = () => { onFilterChange(filter); }
-  const onClickSearchReset = () => { setFilter(''); onFilterChange(undefined) }
+  const onClickSearchReset = () => { setFilter(''); onFilterChange(undefined,'') }
 
   const filterChangeHandler = (event:React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
@@ -56,22 +56,14 @@ export function TasksDetailSearch({project_gids, onFilterChange}:TasksDetailSear
 
   const filterEnterHandler = (event:React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      //console.log(`Tasks.TasksDetailSearch() - text: ${text} - trigger Asana search - project gids: ${project_gids.join(',')}`)
-      if (text != '') {
-        axios
-        .get(`http://localhost:37070/projects/search?project_gids=${project_gids.join(',')}&text=${text}`,{ headers: {  'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json',}})
-        .then((response) => {
-            //console.log(`Tasks.TasksDetailSearch() - text: ${text} - Asana response: ${response.data.tasks}`)
-            //console.log(response.data)
-
-            onFilterChange(response.data.tasks)
-        });
-      }
-      else {
-        onFilterChange(undefined)
-      }
+            onFilterChange( text)
     }
   }
+
+  React.useEffect(() => {
+    // console.log(`Tasks.TasksDetailSearch() - useEffect() - text: ${searchText}`)
+    setFilter(searchText)
+  },[searchText])
 
   return (
       <div>

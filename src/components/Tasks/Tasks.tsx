@@ -11,6 +11,7 @@ import { FormGroup} from '@mui/material';
 
 import ProjectType , { SectionType, TaskType, SubtaskType  } from '../../types/ProjectTypes'
 import TagType, { TagFilterOptions} from '../../types/TagType'
+import DetailedSearchType from '../../types/DetailedSearchType'
 
 
 import TasksSearch, { TasksDetailSearch } from './TasksSearch';
@@ -280,6 +281,8 @@ interface TasksProps {
     tagFilter: TagFilterOptions;
     searchFilter: string;
     setSearchFilter: any;
+    searchDetailedFilter: DetailedSearchType;
+    onSearchDetailed: any;
     dates:TasksDatesI;
     setDatesFilter:any;
     completedTasks:boolean;
@@ -295,6 +298,8 @@ export default function Tasks({ projects,
                                 tagFilter,          // : TagFilterOptions 
                                 searchFilter, 
                                 setSearchFilter,
+                                searchDetailedFilter,
+                                onSearchDetailed,                                                            
                                 dates, setDatesFilter,
                                 completedTasks, setCompletedTasks, 
                                 priorities, setPriority, 
@@ -303,17 +308,33 @@ export default function Tasks({ projects,
    
     const [buttonExpandCollpase, setButtonExpandCollpase] = React.useState<string>('Collapse All')
     const [treeExpansion,setTreeExpansion] = React.useState<TreeExpansionI>({})
-    const [filterTaskGids, setFilterTaskGids] = React.useState<string[]|undefined>(undefined)
+    //const [filterTaskGids, setFilterTaskGids] = React.useState<string[]|undefined>(undefined)
 
     
-    const treeNodeSelect = (event: React.SyntheticEvent, nodeIds: Array<string> | string) : void => {
-        console.log(`Task:treeNodeSelect() - nodeIds: ${nodeIds}`)
-        console.log(event)        
-    }
+    //const treeNodeSelect = (event: React.SyntheticEvent, nodeIds: Array<string> | string) : void => {
+    //    console.log(`Task:treeNodeSelect() - nodeIds: ${nodeIds}`)
+    //    console.log(event)        
+    //}
 
-    const expandTasksWithFilter = (projectsSelected:string[]):TreeExpansionI => {
+    // sorts the state variable treeExpansion by project.name
+    const sortTreeExpansion = (tree:TreeExpansionI):TreeExpansionI => {
+        const result: TreeExpansionI = {}
+        Object.keys(tree).map((k) => {return [tree[k].project.name, k]}).sort((a, b) => { 
+            if (a[0] < b[0])
+                return -1;
+            if (a[0] > b[0])
+                return 1;
+            return 0;
+        }).map((m) => { return result[m[1]] = tree[m[1]] })
+        return result
+    }
+    
+
+    const expandTasksWithFilter = (projects_selected:string[]):TreeExpansionI => {
         const state: TreeExpansionI =  {}
-        filterProjects(projects, projectsSelected, searchFilter, completedTasks, priorities, tags, tagFilter, dates,filterTaskGids).map(project => {
+        filterProjects(projects, projects_selected, searchFilter, completedTasks, priorities, tags, tagFilter, dates,searchDetailedFilter.gids).map(project => {
+            // console.log(`Task:expandTasksWithFilter(project: ${project})`)
+            // console.log(project)
             state[project.gid] = {project: project, gids: [project.gid]}
             project.sections.map(section => {
                 state[project.gid].gids.push(section.gid)
@@ -356,9 +377,6 @@ export default function Tasks({ projects,
         setDatesFilter(option)
     }
 
-    const onFilterChange = (newFilter:string):void => {
-        setSearchFilter(newFilter)
-    }
 
     const handleCompletedTasks = () => {
         setCompletedTasks()
@@ -368,58 +386,11 @@ export default function Tasks({ projects,
         setPriority(selected_priority);
     }   
     
-    const handleFilterTaskGids = (gids:string[]): void => {
-        console.log(`Tasks.handleFilterTaskGids() - gids: ${gids}`)
-        setFilterTaskGids(gids)
+    const handleDetailedSearch = (filterText:string): void => {
+        // console.log(`Tasks.handleFilterTaskGids() - filterText: ${filterText}`)
+        //setFilterTaskGids(gids)
+        onSearchDetailed(filterText)
     }
-
-    React.useEffect(() => {
-        const state: TreeExpansionI =  {}
-        for (var i=0; i < projectsSelected.length;i++) {
-            if (treeExpansion.hasOwnProperty(projectsSelected[i]) == true) {
-               state[projectsSelected[i]] = treeExpansion[projectsSelected[i]]
-            }
-        }
-        const new_projectsSelected:string[] = [];
-        for (var i=0; i < projectsSelected.length;i++) {
-            if (state.hasOwnProperty(projectsSelected[i]) == false) {
-                new_projectsSelected.push()
-                for (var j=0; j < projects.length;j++) {
-                    if (projects[j].gid == projectsSelected[i]) {
-                        new_projectsSelected.push(projectsSelected[i])
-                    }
-                }
-            }
-        }
-        const temp:TreeExpansionI =  expandTasksWithFilter(new_projectsSelected)
-        
-        let new_state: TreeExpansionI = {...state, ...temp }
-        //console.log(`Task:useEffect(${projectsSelected}) - new state:`)
-        //console.log(new_state)
-        new_state = sortTreeExpansion(new_state)
-        setTreeExpansion(new_state)
-        //handleTaskTags(treeGetTagGids(new_state))
-    },[projectsSelected]);
-
-    
-    React.useEffect(() => {
-        let state: TreeExpansionI =  expandTasksWithFilter(projectsSelected)
-        //console.log(`Task:useEffect - initial state:`)
-        //console.log(state)
-        state = sortTreeExpansion(state)
-        setTreeExpansion(state)
-        //handleTaskTags(treeGetTagGids(state))
-    },[]);
-
-    React.useEffect(() => {
-        let state: TreeExpansionI =  expandTasksWithFilter(projectsSelected)
-        //console.log(`Task:useEffect - initial state:`)
-        //console.log(state)
-        state = sortTreeExpansion(state)
-        setTreeExpansion(state)
-        //handleTaskTags(treeGetTagGids(state))
-        //setTagsFilter(tags)
-    },[searchFilter,priorities, completedTasks, tags, tagFilter, dates,filterTaskGids]);
 
     const handleTreeViewNodeToggle = (event:any, nodeIds:string[]) => {
         //console.log(`Task1:handleTreeViewNodeToggle() - nodeIds: ${nodeIds} (len ${nodeIds.length})`)
@@ -439,20 +410,65 @@ export default function Tasks({ projects,
         }
         //console.log(`Task1:handleTreeViewNodeToggle() - new state:`)
         //console.log(state)
-    };
-
-    // sorts the state variable treeExpansion by project.name
-    const sortTreeExpansion = (tree:TreeExpansionI):TreeExpansionI => {
-        const result: TreeExpansionI = {}
-        Object.keys(tree).map((k) => {return [tree[k].project.name, k]}).sort((a, b) => { 
-            if (a[0] < b[0])
-                return -1;
-            if (a[0] > b[0])
-                return 1;
-            return 0;
-        }).map((m) => { return result[m[1]] = tree[m[1]] })
-        return result
     }
+
+
+    const onFilterChange = (newFilter:string):void => {
+        setSearchFilter(newFilter)
+    }
+
+    // initial render
+    React.useEffect(() => {
+        let state: TreeExpansionI =  expandTasksWithFilter(projectsSelected)
+        // console.log(`Task:useEffect - initial state:`)
+        // console.log(state)
+        state = sortTreeExpansion(state)
+        setTreeExpansion(state)
+        //handleTaskTags(treeGetTagGids(state))
+    },[]);
+
+    // when project selection changes
+    React.useEffect(() => {
+        const state: TreeExpansionI =  {}
+        for (var i=0; i < projectsSelected.length;i++) {
+            if (treeExpansion.hasOwnProperty(projectsSelected[i]) == true) {
+               state[projectsSelected[i]] = treeExpansion[projectsSelected[i]]
+            }
+        }
+        const new_projectsSelected:string[] = [];
+        for (var i=0; i < projectsSelected.length;i++) {
+            if (state.hasOwnProperty(projectsSelected[i]) == false) {
+                new_projectsSelected.push()
+                for (var j=0; j < projects.length;j++) {
+                    if (projects[j].gid == projectsSelected[i]) {
+                        new_projectsSelected.push(projectsSelected[i])
+                    }
+                }
+            }
+        }
+        const temp:TreeExpansionI =  expandTasksWithFilter(projectsSelected)
+        
+        let new_state: TreeExpansionI = {...state, ...temp }
+        //console.log(`Task:useEffect(${projectsSelected}) - new state:`)
+        //console.log(new_state)
+        new_state = sortTreeExpansion(new_state)
+        setTreeExpansion(new_state)
+        //handleTaskTags(treeGetTagGids(new_state))
+    },[projectsSelected]);
+
+    
+    // when certain props change
+    React.useEffect(() => {
+        let state: TreeExpansionI =  expandTasksWithFilter(projectsSelected)
+        //console.log(`Task:useEffect - initial state:`)
+        //console.log(state)
+        state = sortTreeExpansion(state)
+        setTreeExpansion(state)
+        //handleTaskTags(treeGetTagGids(state))
+        //setTagsFilter(tags)
+    },[searchFilter,searchDetailedFilter, priorities, completedTasks, tags, tagFilter, dates]);
+
+
 
     return (
       <div>
@@ -464,7 +480,7 @@ export default function Tasks({ projects,
                     <ExpandColapseButton text={buttonExpandCollpase}  handleExpandCollapseClick={handleExpandCollapseClick} />
                 </Stack>
                 <Stack direction='row' spacing={3} divider={<Divider orientation="vertical" flexItem />} >
-                    <TasksDetailSearch project_gids={projectsSelected} onFilterChange={handleFilterTaskGids} />
+                    <TasksDetailSearch searchText={searchDetailedFilter.text} onFilterChange={handleDetailedSearch} />
                     <TasksCompleted onClickHandler={handleCompletedTasks} checked={completedTasks} />
                 </Stack>
             </Stack>
@@ -517,7 +533,8 @@ export default function Tasks({ projects,
 
 function filterProjects(projects: ProjectType[], projectsSelected: string[], filter: string, completedTask: boolean,priorities: string[], tags:TagType[], tagFilter:TagFilterOptions, dates:TasksDatesI, task_gids: string[]|undefined): ProjectType[] {
     let result: ProjectType[] = [];
-    //console.log(`filterProject() - START 1 - task_gids (${task_gids})`)
+    // console.log(`filterProject() - START 1 - task_gids (${task_gids})`)
+    // console.log(task_gids)
     projects.map(project => {
         if (projectsSelected.includes(project.gid)) {
             let temp: ProjectType = {...project} // { name: project.name, gid: project.gid, url: project.url, sections: []}
@@ -527,11 +544,11 @@ function filterProjects(projects: ProjectType[], projectsSelected: string[], fil
                 let filtered_tasks:TaskType[] = []
                 section.tasks.map((task) => {
                     let filtered_subtasks:SubtaskType[] = []
-                    //console.log(`==============================================================`)
-                    //console.log(`filterProject() - START 2 - Project / Section / Task ( ${project.name} /  ${section.name} / ${task.name} [${task.gid}] )`)
+                    // console.log(`==============================================================`)
+                    // console.log(`filterProject() - START 2 - Project / Section / Task ( ${project.name} /  ${section.name} / ${task.name} [${task.gid}] )`)
                     task.subtasks.map((subtask) => {
-                        //console.log(`........................................................`)
-                        //console.log(`filterProject() - START 3 - Subtask (${subtask.name} / ${subtask.gid})`)
+                        // console.log(`........................................................`)
+                        // console.log(`filterProject() - START 3 - Subtask (${subtask.name} / ${subtask.gid})`)
 
                         let showSubtask = false
 
@@ -550,7 +567,7 @@ function filterProjects(projects: ProjectType[], projectsSelected: string[], fil
                         if (showSubtask) {
                             if (task_gids != undefined) {
                                 if (task_gids.length == 0) {
-                                    showSubtask = false
+                                    showSubtask = true
                                 }
                                 else {
                                     if (task_gids.includes(subtask.gid) == false) {

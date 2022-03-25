@@ -21,9 +21,9 @@ import SidebarTags from './Sidebar/SidebarTags'
 import SidebarTagsFilter from './Sidebar/SidebarTagsFilter'
 import SidebarTagsSelected from './Sidebar/SidebarTagsSelected'
 import SidebarTagsSearch from './Sidebar/SidebarTagsSearch'
-import ProjectType , { filterProject, SectionType, SubtaskType, TaskType } from '../types/ProjectTypes'
+import ProjectType , { SectionType, SubtaskType, TaskType } from '../types/ProjectTypes'
+import DetailedSearchType from '../types/DetailedSearchType'
 import TagType, { TagFilterOptions } from '../types/TagType'
-
 
 
 
@@ -41,6 +41,7 @@ function App() {
     const [task_note, setTaskNote] = React.useState<TaskNoteI|undefined>(undefined);
     const [completedTasks,setCompletedTasks] = React.useState<boolean>(false)
     const [searchFilter,setSearchFilter] = React.useState<string>('')
+    const [searchDetailed,setSearchDetailed] = React.useState<DetailedSearchType>({text:'',gids:[]})
     const [priorities,setPriorities] = React.useState<string[]>([])
     const [tasksDates,setTasksDates] = React.useState<TasksDatesI>({none:false,past:false,pastQuarter:false,today:false,week:false,month:false, tomorrow:false, quarter:false})
     const [tags,setTags] = React.useState<TagType[]>([]) 
@@ -70,6 +71,7 @@ function App() {
     const handleFilterReset = () => {
         setCompletedTasks(false)
         setSearchFilter('')
+        setSearchDetailed({text:'',gids:[]})
         setPriorities([])
         setTasksDates({none:false,past:false,pastQuarter:false,today:false,week:false,month:false, tomorrow:false, quarter:false})
         setTagFilter(TagFilterOptions.Any)
@@ -234,6 +236,22 @@ function App() {
         setTags(tags_state)
     }
 
+    const handleSearchdetailed = (text:string):void => {
+          if (text != '') {
+            axios
+            .get(`http://localhost:37070/projects/search?project_gids=${projectsSelected.join(',')}&text=${text}`,{ headers: {  'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json',}})
+            .then((response) => {
+                //console.log(`Tasks.TasksDetailSearch() - text: ${text} - Asana response: ${response.data.tasks}`)
+                //console.log(response.data)
+                setSearchDetailed({text:text,gids:response.data.tasks})
+            });
+          }
+          else {
+            setSearchDetailed({text:'',gids:[]})
+          }
+        }
+      
+    
 
     const handleRefresh = () => {
         //console.log(`App:handleRefresh()- refresh projects ...`)
@@ -318,6 +336,7 @@ function App() {
    }
 
 
+
     return (
     
         <div>   
@@ -369,7 +388,10 @@ function App() {
                                                 //setAllTagsFilter={handlesAllTagsFilter}
                                                 dates={tasksDates}
                                                 setDatesFilter={setDatesFilter}
-                                                searchFilter={searchFilter} setSearchFilter={handleSearchFilter}
+                                                searchFilter={searchFilter} 
+                                                setSearchFilter={handleSearchFilter}
+                                                searchDetailedFilter={searchDetailed} 
+                                                onSearchDetailed={handleSearchdetailed}
                                                 completedTasks={completedTasks} setCompletedTasks={handleCompletedTasks} 
                                                 priorities={priorities} setPriority={handlePriority}
                                                 clickSubTask={handleTaskNoteClick} />

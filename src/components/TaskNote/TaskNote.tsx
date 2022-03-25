@@ -119,17 +119,31 @@ interface SubtaskProps {
 }
 
 function Subtasks({note}:SubtaskProps)  {
-    
+
     return (
         <>
             {
                 note.task.subtasks.map(subtask => {
                     const url = `https://app.asana.com/0/${note.project.gid}/${subtask.gid}/f`
-                    return  subtask.completed==false 
-                            && 
-                            <div  key={subtask.gid}>
-                                <a style={{fontSize: '12px'}} href={url} target='_blank'> - {subtask.name}</a>
-                            </div> 
+                    return  ( 
+                        subtask.completed==false
+                        &&
+                        <div  key={subtask.gid}>
+                            <a style={{fontSize: '12px'}} href={url} target='_blank'>{subtask.name}</a>
+                        </div> 
+                    )
+                })
+            }
+            {
+                note.task.subtasks.map(subtask => {
+                    const url = `https://app.asana.com/0/${note.project.gid}/${subtask.gid}/f`
+                    return  ( 
+                        subtask.completed==true
+                        &&
+                        <div  key={subtask.gid}>
+                            <a style={{fontSize: '12px', fontStyle: 'italic', color: 'gray'}} href={url} target='_blank'>Closed: &nbsp;{subtask.name}</a>
+                        </div> 
+                    )
                 })
             }
         </>
