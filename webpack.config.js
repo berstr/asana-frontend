@@ -21,10 +21,22 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
+              importLoaders: 1,
               modules: true,
             }
           }
         ],
+        include: /\.module\.css$/,
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+          }
+        ],
+        exclude: /\.module\.css$/,
       }
     ]
   },
