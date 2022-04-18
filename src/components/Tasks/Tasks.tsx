@@ -499,6 +499,7 @@ export default function Tasks({ projects,
 
         </Stack>
     
+        <div className="tree">
         {
             Object.keys(treeExpansion).map((key, index) => {
                 { //console.log(`Task:render.return() - gids: ${treeExpansion[key].gids}`) ; 
@@ -525,6 +526,7 @@ export default function Tasks({ projects,
                 )
             })
         }
+        </div>
     </div>
   );
 }

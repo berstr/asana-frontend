@@ -12,3 +12,9 @@ body {
  .scrollhost::-webkit-scrollbar {
    display: none;
  }
+
+ .tree {
+  height: 99vh;
+  overflow-y: scroll;
+ }
+
